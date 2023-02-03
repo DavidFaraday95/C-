@@ -1,7 +1,7 @@
 # Toolsets for Electric Engineering:
 
 /*
-Matplotlib: Generating fast Diagramms via Matlab or Python
+<div> Matplotlib: Generating fast Diagramms via Matlab or Python </div>
 Imhex:      For Checking C-Code into Assembly Code (of the given architecture) + Reverse Engineering
 Godbolt:    For Transforming C-Code into Assembly Code (of the given architecture)
 LT-Spice:   Fast Circuitsimulator
