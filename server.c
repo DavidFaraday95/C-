@@ -12,29 +12,37 @@
 void handle_client(SOCKET* client_socket) {
     char buffer[BUFFER_SIZE];
     int bytes_read;
-
-    // Read client message
+    int message_count = 0;
+    
+    // Read client messages in a loop
     while ((bytes_read = recv(*client_socket, buffer, BUFFER_SIZE - 1, 0)) > 0) {
         buffer[bytes_read] = '\0';
-        printf("Received message: %s\n", buffer);
-        if (buffer == "Hello from the Client!") {
-            // Send response
-            const char* response = "Hello from the Server!";
-            send(*client_socket, response, strlen(response), 0);
-        }
-        else if (buffer == "exit") {
-            // Send response
-            const char* response = "Goodbye!";
-            send(*client_socket, response, strlen(response), 0);
+        printf("Received message %d: %s\n", message_count + 1, buffer);
+        message_count++;
+        
+        // Send response
+        const char* response = "Message received";
+        send(*client_socket, response, strlen(response), 0);
+        
+        // If we've received 32 messages, we can stop
+        if (message_count >= 32) {
+            printf("Received all 64 messages\n");
             break;
         }
-        break; // Exit after one message exchange
+        
+        // Check for exit command
+        if (strcmp(buffer, "exit") == 0) {
+            const char* goodbye = "Goodbye!";
+            send(*client_socket, goodbye, strlen(goodbye), 0);
+            break;
+        }
     }
-
+    
     if (bytes_read < 0) {
         printf("recv failed with error: %d\n", WSAGetLastError());
     }
-
+    
+    printf("Total messages received: %d\n", message_count);
     closesocket(*client_socket);
 }
 

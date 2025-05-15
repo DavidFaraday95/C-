@@ -33,7 +33,7 @@ The server will listen on port 8080 and the client will connect to localhost:808
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 64
 
 int main() {
     WSADATA wsaData;
@@ -74,10 +74,20 @@ int main() {
     }
 
     // Send message to server
-    const char* message = "Hello from cli";
-    send(sock, message, strlen(message), 0);
-    printf("Message sent\n");
-
+    char message[16];
+    for (int i = 1; i <= 32; i++) {
+        sprintf(message, "%d", i);
+        send(sock, message, strlen(message), 0);
+        printf("Sent: %d\n", i);
+        
+        // Receive response for each message
+        char response[BUFFER_SIZE] = {0};
+        int bytes_received = recv(sock, response, BUFFER_SIZE - 1, 0);
+        if (bytes_received > 0) {
+            response[bytes_received] = '\0';
+            printf("Server response: %s\n", response);
+        }
+    }
     // Receive response from server
     int valread = recv(sock, buffer, BUFFER_SIZE - 1, 0);
     if (valread > 0) {
