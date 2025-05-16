@@ -46,11 +46,12 @@ int main() {
         return 1;
     }
     
-    // Send Hello World message
-    const char* message = "Hello World";
+    // Send Hello World message with a number
+    char message[50];
+    int number = 2;  // You can change this number as needed
+    sprintf(message, "Hello World %d", number);
     send(sock, message, strlen(message), 0);
-    printf("Hello World message sent\n");
-    
+    printf("%s message sent\n", message);
     // Receive 32 values from server
     int values[BUFFER_SIZE];
     int bytes_received = recv(sock, (char*)values, sizeof(values), 0);

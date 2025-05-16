@@ -33,7 +33,7 @@ int main() {
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(PORT);
-
+ 
     // Bind
     if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
         printf("Bind failed with error: %d\n", WSAGetLastError());
@@ -52,46 +52,49 @@ int main() {
 
     printf("Server listening on port %d\n", PORT);
 
-    // Accept connection
-    if ((client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_len)) == INVALID_SOCKET) {
-        printf("Accept failed with error: %d\n", WSAGetLastError());
-        closesocket(server_socket);
-        WSACleanup();
-        return 1;
-    }
+    // Continuously accept connections
+    while (1) {
+        // Accept connection
+        if ((client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_len)) == INVALID_SOCKET) {
+            printf("Accept failed with error: %d\n", WSAGetLastError());
+            continue; // Continue to next iteration instead of exiting
+        }
 
-    printf("Connection accepted from %s:%d\n", 
-        inet_ntoa(client_addr.sin_addr), 
-        ntohs(client_addr.sin_port));
-    
-    // Receive data from client
-    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-    if (bytes_received > 0) {
-        buffer[bytes_received] = '\0';
-        printf("Received: %s\n", buffer);
+        printf("Connection accepted from %s:%d\n", 
+            inet_ntoa(client_addr.sin_addr), 
+            ntohs(client_addr.sin_port));
         
-        // Send 32 values to the client
-        int values[BUFFER_SIZE];
-        for (int i = 0; i < BUFFER_SIZE; i++) {
-            values[i] = i + 1; // Fill with values 1-32
+        // Receive data from client
+        int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
+        if (bytes_received > 0) {
+            buffer[bytes_received] = '\0';
+            printf("Received: %s\n", buffer);
+            
+            // Send 32 values to the client
+            int values[BUFFER_SIZE];
+            for (int i = 0; i < BUFFER_SIZE; i++) {
+                values[i] = i + 1; // Fill with values 1-32
+            }
+            
+            // Send the array to client
+            int bytes_sent = send(client_socket, (char*)values, sizeof(values), 0);
+            if (bytes_sent == SOCKET_ERROR) {
+                printf("send failed with error: %d\n", WSAGetLastError());
+            } else {
+                printf("Sent %d bytes of data to client\n", bytes_sent);
+            }
+        }
+        if (bytes_received == SOCKET_ERROR) {
+            printf("recv failed with error: %d\n", WSAGetLastError());
         }
         
-        // Send the array to client
-        int bytes_sent = send(client_socket, (char*)values, sizeof(values), 0);
-        if (bytes_sent == SOCKET_ERROR) {
-            printf("send failed with error: %d\n", WSAGetLastError());
-        } else {
-            printf("Sent %d bytes of data to client\n", bytes_sent);
-        }
-    }
-    if (bytes_received == SOCKET_ERROR) {
-        printf("recv failed with error: %d\n", WSAGetLastError());
+        printf("Connection closed\n");
+        
+        // Close client socket but keep server running
+        closesocket(client_socket);
     }
     
-    printf("Connection closed\n");
-    
-    // Cleanup
-    closesocket(client_socket);
+    // Cleanup (this code will only be reached if the loop is broken)
     closesocket(server_socket);
     WSACleanup();
     return 0;
