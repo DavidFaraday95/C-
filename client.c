@@ -7,7 +7,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 512
 
 int main() {
     WSADATA wsaData;

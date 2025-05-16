@@ -8,6 +8,7 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 64
+#define BUFFER_SIZE2 128
 
 int main() {
     WSADATA wsaData;
@@ -70,18 +71,36 @@ int main() {
             buffer[bytes_received] = '\0';
             printf("Received: %s\n", buffer);
             
+            if (strcmp(buffer, "Hello World 1") == 0) {
             // Send 32 values to the client
-            int values[BUFFER_SIZE];
-            for (int i = 0; i < BUFFER_SIZE; i++) {
-                values[i] = i + 1; // Fill with values 1-32
-            }
-            
-            // Send the array to client
-            int bytes_sent = send(client_socket, (char*)values, sizeof(values), 0);
-            if (bytes_sent == SOCKET_ERROR) {
-                printf("send failed with error: %d\n", WSAGetLastError());
-            } else {
-                printf("Sent %d bytes of data to client\n", bytes_sent);
+                int values[BUFFER_SIZE];
+                for (int i = 0; i < BUFFER_SIZE; i++) {
+                    values[i] = i + 1; // Fill with values 1-32
+                }
+                
+                // Send the array to client
+                int bytes_sent = send(client_socket, (char*)values, sizeof(values), 0);
+                if (bytes_sent == SOCKET_ERROR) {
+                    printf("send failed with error: %d\n", WSAGetLastError());
+                } else {
+                    printf("Sent %d bytes of data to client\n", bytes_sent);
+                }
+            }   
+
+            if (strcmp(buffer, "Hello World 2") == 0) {
+            // Send 32 values to the client
+                int values[BUFFER_SIZE2];
+                for (int i = 0; i < BUFFER_SIZE2; i++) {
+                    values[i] = i + 1; // Fill with values 1-32
+                }
+                
+                // Send the array to client
+                int bytes_sent = send(client_socket, (char*)values, sizeof(values), 0);
+                if (bytes_sent == SOCKET_ERROR) {
+                    printf("send failed with error: %d\n", WSAGetLastError());
+                } else {
+                    printf("Sent %d bytes of data to client\n", bytes_sent);
+                }
             }
         }
         if (bytes_received == SOCKET_ERROR) {
