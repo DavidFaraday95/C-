@@ -47,8 +47,8 @@ int main() {
         return 1;
     }
 
-    // Create socket
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+    // Create socket - explicitly using TCP (SOCK_STREAM)
+    if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
         printf("Socket creation error\n");
         WSACleanup();
         return 1;
@@ -73,26 +73,30 @@ int main() {
         return 1;
     }
 
-    // Send message to server
-    char message[16];
-    for (int i = 1; i <= 32; i++) {
+    // Send 64 messages to the server
+    char message[64];
+    for (int i = 1; i <= BUFFER_SIZE; i++) {
         sprintf(message, "%d", i);
         send(sock, message, strlen(message), 0);
-        printf("Sent: %d\n", i);
-        
-        // Receive response for each message
+        printf("Sent message %d\n", i);
+    }
+    
+    printf("Waiting to receive 32 samples from server...\n");
+    
+    // Receive 32 samples from the server
+    for (int i = 1; i <= 64; i++) {
         char response[BUFFER_SIZE] = {0};
         int bytes_received = recv(sock, response, BUFFER_SIZE - 1, 0);
         if (bytes_received > 0) {
             response[bytes_received] = '\0';
-            printf("Server response: %s\n", response);
+            printf("Received sample %d: %s\n", i, response);
+            
+            // Send acknowledgment to server
+            send(sock, "ACK", 3, 0);
+        } else {
+            printf("Failed to receive sample %d\n", i);
+            break;
         }
-    }
-    // Receive response from server
-    int valread = recv(sock, buffer, BUFFER_SIZE - 1, 0);
-    if (valread > 0) {
-        buffer[valread] = '\0';
-        printf("Server response: %s\n", buffer);
     }
 
     // Cleanup
@@ -100,7 +104,6 @@ int main() {
     WSACleanup();
     return 0;
 }
-
 
 
 
