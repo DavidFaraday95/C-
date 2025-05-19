@@ -9,6 +9,7 @@
 #define PORT 8080
 #define BUFFER_SIZE 512
 #define BUFFER_SIZE2 32
+#define BUFFER_SIZE3 4096
 
 int main() {
     WSADATA wsaData;
@@ -39,6 +40,12 @@ int main() {
         return 1;
     }
 
+    
+    // Send Hello World message with a number
+    char message[50];
+    int number = 7 ;  // You can change this number as needed
+
+
     // Connect to server
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("Connection Failed\n");
@@ -47,9 +54,6 @@ int main() {
         return 1;
     }
     
-    // Send Hello World message with a number
-    char message[50];
-    int number = 6 ;  // You can change this number as needed
 
     if (number < 3) {
         sprintf(message, "Hello World %d", number);
@@ -101,22 +105,55 @@ int main() {
             printf("Pattern received: %c%c%c%c%c\n", pattern_data[0], pattern_data[1], pattern_data[2], pattern_data[3], pattern_data[4]);
         }
     }
-    else if (number > 5) {
+    else if (number > 5 && number < 8) {
+        // Send Hello World 7 message 7 times
         sprintf(message, "Hello World %d", number);
-        send(sock, message, strlen(message), 0);
-        printf("%s message sent\n", message);
         
-        // Receive pattern data from server
-        char pattern_data[BUFFER_SIZE2] = {0};
-        int bytes_received = recv(sock, pattern_data, BUFFER_SIZE2, 0);
-        
-        if (bytes_received == SOCKET_ERROR) {
-            printf("recv failed with error: %d\n", WSAGetLastError());
-        } else {
-            printf("Received %d bytes of pattern data\n", bytes_received);
-            printf("Pattern received: %s\n", pattern_data);
+        int successful_cycles = 0;
+        for (int i = 0; i < BUFFER_SIZE3; i++) {
+            printf("Attempt %d of BUFFER_SIZE3:\n", i + 1);
+            
+            // Create a new socket for each attempt to avoid connection reset issues
+            if (i > 0) {
+                closesocket(sock);
+                if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
+                    printf("Socket recreation error\n");
+                    break;
+                }
+                
+                // Reconnect to server
+                if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+                    printf("Reconnection Failed on attempt %d\n", i + 1);
+                    continue;
+                }
+            }
+            
+            // Send the message
+            if (send(sock, message, strlen(message), 0) == SOCKET_ERROR) {
+                printf("Send failed with error: %d\n", WSAGetLastError());
+                continue;
+            }
+            printf("%s message sent\n", message);
+            
+            // Receive pattern data from server
+            char pattern_data[BUFFER_SIZE3] = {0};
+            int bytes_received = recv(sock, pattern_data, BUFFER_SIZE3, 0);
+            
+            if (bytes_received == SOCKET_ERROR) {
+                printf("recv failed with error: %d\n", WSAGetLastError());
+                continue;
+            } else {
+                printf("Received %d bytes of pattern data\n", bytes_received);
+                printf("Pattern received: %s\n", pattern_data);
+                successful_cycles++;
+            }
+            
+            // Small delay between attempts
+            //Sleep(100);
         }
-    }
+        
+        printf("Completed %d successful send/receive cycles out of 7\n", successful_cycles);
+    } 
     // Cleanup
     closesocket(sock);
     WSACleanup();

@@ -26,7 +26,7 @@ The server will listen on port 8080 and the client will connect to localhost:808
 
 #define PORT 8080
 #define BUFFER_SIZE 64
-#define BUFFER_SIZE2 128
+#define BUFFER_SIZE2 4096
 
 int main() {
     WSADATA wsaData;
@@ -179,8 +179,8 @@ int main() {
             }
             if (strcmp(buffer, "Hello World 6") == 0) {
                 // Send 2 bytes of pattern data to the client
-                time_t current_time;
-                time(&current_time);
+                    time_t current_time;
+                    time(&current_time);
                 
                 int data_addr = 3;
                 char pattern_data[BUFFER_SIZE2] = {'a', 'b', 0, 0}; // Initialize first with characters
@@ -209,24 +209,40 @@ int main() {
            
             
             if (strcmp(buffer, "Hello World 7") == 0) {
-                // Send 2 bytes of pattern data to the client
+                // Send pattern data to the client
+                static int error_cnt;
                 int data_addr = 3;
                 char pattern_data[BUFFER_SIZE2] = {'a', 'b', 0, 0}; // Initialize first with characters
                 // Convert integers 1 and 2 to string representation and store in positions 2 and 3
                 sprintf(&pattern_data[2], "%d%d%d", 1, 2, data_addr);
                 
-                // Concatenate additional data to pattern_data up to BUFFER_SIZE2
-                char additional_data[] = "_a";
-                strncat(pattern_data, additional_data, BUFFER_SIZE2 - strlen(pattern_data) - 1);
+                // Get connection count from client address
+                static int connection_count = 0;
+                connection_count++;
                 
-                printf("Pattern data: %s\n", pattern_data);
+                // Append "_a" multiple times based on connection count
+                char append_buffer[BUFFER_SIZE2] = "";
+                for (int i = 0; i < connection_count; i++) {
+                    strncat(append_buffer, "a", BUFFER_SIZE2 - strlen(append_buffer) - 1);
+                }
+                
+                // Append the generated string to pattern_data
+                strncat(pattern_data, append_buffer, BUFFER_SIZE2 - strlen(pattern_data) - 1);
+                
+                printf("Connection #%d, Pattern data: %s\n", connection_count, pattern_data);
                 
                 // Send the pattern data to client
                 int bytes_sent = send(client_socket, pattern_data, BUFFER_SIZE2, 0);
                 if (bytes_sent == SOCKET_ERROR) {
-                    printf("send failed with error: %d\n", WSAGetLastError());
+                    error_cnt++;
+                    printf("send failed with error: %d%d\n", WSAGetLastError(), error_cnt);
                 } else {
                     printf("Sent %d bytes of pattern data to client\n", bytes_sent);
+                }
+                
+                // Reset counter if we've reached 7 connections
+                if (connection_count >= BUFFER_SIZE2) {
+                    connection_count = 0;
                 }
             }
         }
