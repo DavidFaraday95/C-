@@ -8,6 +8,7 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 512
+#define BUFFER_SIZE2 32
 
 int main() {
     WSADATA wsaData;
@@ -48,25 +49,74 @@ int main() {
     
     // Send Hello World message with a number
     char message[50];
-    int number = 2;  // You can change this number as needed
-    sprintf(message, "Hello World %d", number);
-    send(sock, message, strlen(message), 0);
-    printf("%s message sent\n", message);
-    // Receive 32 values from server
-    int values[BUFFER_SIZE];
-    int bytes_received = recv(sock, (char*)values, sizeof(values), 0);
-    
-    if (bytes_received == SOCKET_ERROR) {
-        printf("recv failed with error: %d\n", WSAGetLastError());
-    } else {
-        printf("Received %d bytes of data\n", bytes_received);
-        printf("Values received: ");
-        for (int i = 0; i < bytes_received / sizeof(int); i++) {
-            printf("%d ", values[i]);
+    int number = 6 ;  // You can change this number as needed
+
+    if (number < 3) {
+        sprintf(message, "Hello World %d", number);
+        send(sock, message, strlen(message), 0);
+        printf("%s message sent\n", message);
+        // Receive 32 values from server
+        int values[BUFFER_SIZE];
+        int bytes_received = recv(sock, (char*)values, sizeof(values), 0);
+        
+        if (bytes_received == SOCKET_ERROR) {
+            printf("recv failed with error: %d\n", WSAGetLastError());
+        } else {
+            printf("Received %d bytes of data\n", bytes_received);
+            printf("Values received: ");
+            for (int i = 0; i < bytes_received / sizeof(int); i++) {
+                printf("%d ", values[i]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
-    
+    else if (number == 3) {
+        sprintf(message, "Hello World %d", number);
+        send(sock, message, strlen(message), 0);
+        printf("%s message sent\n", message);
+        
+        // Receive pattern data from server
+        char pattern_data[2] = {0};
+        int bytes_received = recv(sock, pattern_data, 2, 0);
+        
+        if (bytes_received == SOCKET_ERROR) {
+            printf("recv failed with error: %d\n", WSAGetLastError());
+        } else {
+            printf("Received %d bytes of pattern data\n", bytes_received);
+            printf("Pattern received: %c%c\n", pattern_data[0], pattern_data[1]);
+        }
+    }
+    else if (number == 4) {
+        sprintf(message, "Hello World %d", number);
+        send(sock, message, strlen(message), 0);
+        printf("%s message sent\n", message);
+        
+        // Receive pattern data from server (a, b, 1, 2)
+        char pattern_data[BUFFER_SIZE2] = {0};
+        int bytes_received = recv(sock, pattern_data, BUFFER_SIZE2, 0); // Receive all data from buffer
+        if (bytes_received == SOCKET_ERROR) {
+            printf("recv failed with error: %d\n", WSAGetLastError());
+        } else {
+            printf("Received %d bytes of pattern data\n", bytes_received);
+            printf("Pattern received: %c%c%c%c%c\n", pattern_data[0], pattern_data[1], pattern_data[2], pattern_data[3], pattern_data[4]);
+        }
+    }
+    else if (number > 5) {
+        sprintf(message, "Hello World %d", number);
+        send(sock, message, strlen(message), 0);
+        printf("%s message sent\n", message);
+        
+        // Receive pattern data from server
+        char pattern_data[BUFFER_SIZE2] = {0};
+        int bytes_received = recv(sock, pattern_data, BUFFER_SIZE2, 0);
+        
+        if (bytes_received == SOCKET_ERROR) {
+            printf("recv failed with error: %d\n", WSAGetLastError());
+        } else {
+            printf("Received %d bytes of pattern data\n", bytes_received);
+            printf("Pattern received: %s\n", pattern_data);
+        }
+    }
     // Cleanup
     closesocket(sock);
     WSACleanup();
